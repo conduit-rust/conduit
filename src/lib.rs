@@ -123,3 +123,22 @@ impl<T: Send + Sync + Show> Handler for fn(&mut Request) -> Result<Response, T> 
         { (*self)(request) }.map_err(|e| box e as Box<Show>)
     }
 }
+
+/// Plugins for Requests and Responses implement this trait, which defines
+/// how to construct an instance of Self from T.
+pub trait PluginFor<T> {
+    /// Construct Self from T.
+    fn create(&T) -> Option<Self>;
+}
+
+pub trait Get {
+    /// Call the correct implementation of PluginFor<Self> to try to
+    /// create an instance of T.
+    fn compute<T: PluginFor<Self>>(&self) -> Option<T> {
+        PluginFor::create(self)
+    }
+}
+
+// Blanket impl for all types so that everything is pluggable.
+impl<T> Get for T {}
+
