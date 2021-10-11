@@ -126,6 +126,12 @@ impl conduit::Handler for RouteBuilder {
         let pattern = m.handler().pattern;
         debug!(pattern = pattern.0, "matching route handler found");
 
+        #[cfg(feature = "sentry")]
+        {
+            let transaction = Some(pattern.pattern());
+            sentry_core::configure_scope(|scope| scope.set_transaction(transaction))
+        }
+
         {
             let extensions = request.mut_extensions();
             extensions.insert(pattern);
